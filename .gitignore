@@ -1,0 +1,17 @@
+# UEFN / Unreal generated files
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.uefn/
+.urc/
+*.sln
+*.suo
+
+# Local tooling artifacts
+__pycache__/
+*.py[cod]
+*.log
+*.tmp
+.vscode/
+.idea/
