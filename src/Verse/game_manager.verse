@@ -1580,3 +1580,55 @@ game_manager := class(creative_device):
             #Update Stat Table
             if. KillerAgentData := AgentMap[EliminatingAgent] then. spawn. UpdateStats(EliminatingPlayer, EliminatingAgent, KillerAgentData)
 
+    UpdateStats(EliminatingPlayer : player, EliminatingAgent : agent, KillerAgentData : agent_data)<suspends>:void=
+        Sleep(2.0)
+        set KillerAgentData.Currency = StatBoardManager.GoldChecker.GetItemCount(EliminatingAgent, 0)
+        SaveData(EliminatingPlayer, KillerAgentData)
+        #Update Our Map for the table
+        if (set KillerAgentData.StatValues["Kills"] += 1.0){}
+        if (set KillerAgentData.StatValues["Gold"] = (KillerAgentData.Currency * 1.0)){}
+        StatBoardManager.UpdateStatTableCanvas(AgentMap)
+
+    UpdateStats(Agent : agent, AgentData : agent_data):void=
+        set AgentData.Currency = StatBoardManager.GoldChecker.GetItemCount(Agent, 0)
+        if. Player := player[Agent] then. SaveData(Player, AgentData)
+        #Update Our Map for the table
+        if (set AgentData.StatValues["Kills"] = 0.0){}
+        if (set AgentData.StatValues["Gold"] = (AgentData.Currency * 1.0)){}
+        if: 
+            Player := player[Agent]
+            CurrentPlayerStats := PlayerStatsManager.GetPlayerStats[Player]
+            CurrentSteal := CurrentPlayerStats.StealStat.CurrentValue
+        then:
+            set AgentData.Steals = CurrentSteal
+            if (set AgentData.StatValues["Steals"] = (CurrentSteal * 1.0)){}
+            
+    SpawnDeathItems(EliminatingPos : transform)<suspends>:void=
+        Print("Player eliminated")
+        Print("Teleporting item drop spawner")
+        # TeleportPos := vector3{X:=EliminatingPos.Translation.X + 20.0, Y:=EliminatingPos.Translation.Y, Z:=EliminatingPos.Translation.Z}
+        if (EliminatedItemsDropMover.TeleportTo[EliminatingPos.Translation, EliminatingPos.Rotation]):
+            EliminatedItemsDropSpawner.Enable()
+            EliminatedItemsDropSpawner.SetTimeBetweenSpawns(0.0)
+            EliminatedItemsDropSpawner.SetEnableRespawnTimer(true)
+            Sleep(0.4)
+            EliminatedItemsDropSpawner.SetEnableRespawnTimer(false)
+            EliminatedItemsDropSpawner.Disable()
+
+    DeterminePowerType(PowerUp : int):PowerType=
+        if (T := PowerCatalog[PowerUp]):
+            return T
+        else:
+            return PowerType.Normal
+
+    DelayDeathHudSFX(EliminatedAgent : agent)<suspends>:void=
+        Sleep(1.0)
+        # DeathHUD.Show(EliminatedAgent)
+
+    SpawnFX(PropAssets : []creative_prop_asset, Transform : transform, Lvl : int)<suspends>:void=
+        Print("spawned players vfx")
+        if (Prop := PropAssets[Lvl], SpawnedProp := SpawnProp(Prop, Transform)(0)?):
+            Sleep(5.0)
+            SpawnedProp.Dispose()
+            Print("disposed vfx")
+
