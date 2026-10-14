@@ -1840,3 +1840,136 @@ game_manager := class(creative_device):
 
         return CustomCanvas
 
+    # ---------- Invariant checking utilities (pure Verse syntax) ----------
+
+    # scratch maps used only during a check
+    var InvCount  : [int]int    = map{}   # power id -> number of buckets it appears in
+    var InvLabels : [int]string = map{}   # power id -> "Held|UI|Avail...|Used..."
+
+    ResetInvariantMaps():void =
+        set InvCount  = map{}
+        set InvLabels = map{}
+
+    AddToInvariant(Power:int, Label:string):void =
+        if (Power > 0):
+            var C : int = 0
+            if (Prev := InvCount[Power]):
+                set C = Prev
+            set C += 1
+            if (set InvCount[Power] = C) {}
+
+            var S : string = ""
+            if (PrevS := InvLabels[Power]):
+                set S = PrevS
+            if (S = ""):
+                set S = Label
+            else:
+                set S = "{S}|{Label}"
+            if (set InvLabels[Power] = S) {}
+
+    FindArrayDuplicates(Ints:[]int):[]int =
+        var Seen : [int]int = map{}
+        var Dups : []int    = array{}
+        for (V : Ints):
+            var C : int = 0
+            if (Prev := Seen[V]):
+                set C = Prev
+            set C += 1
+            if (set Seen[V] = C) {}
+        for (Key -> Val : Seen):
+            if (Val > 1):
+                set Dups += array{Key}
+        return Dups
+
+    ReportDups(Tag:string, Dups:[]int):void =
+        if (Dups.Length > 0):
+            Print("INVARIANT FAIL: {Tag} has duplicates: {ArrayToString(Dups)}",
+                ?Color := color{R := 1.0, G := 0.4, B := 0.0}, ?Duration := 10.0)
+
+    ValidatePowerInvariants():void =
+        ResetInvariantMaps()
+
+        # 1) Powers currently held by players
+        for (Index -> CP : PlayersMap):
+            Held := CP.GetPowerUp()
+            if (Held > 0):
+                AddToInvariant(Held, "Held")
+
+        # 2) Powers marked as "used in world"
+        for (P : UsedPowers):
+            AddToInvariant(P, "UsedNormal")
+        for (P : UsedExoticPowers):
+            AddToInvariant(P, "UsedExotic")
+        for (P : UsedMythicPowers):
+            AddToInvariant(P, "UsedMythic")
+
+        # 3) Powers in available pools
+        for (P : AvailablePowerUps):
+            AddToInvariant(P, "AvailNormal")
+        for (P : AvailableExoticPowers):
+            AddToInvariant(P, "AvailExotic")
+        for (P : AvailableMythicPowers):
+            AddToInvariant(P, "AvailMythic")
+
+        # Cross-bucket overlaps
+        var CrossErrors : int = 0
+        for (Power -> Cnt : InvCount):
+            if (Cnt > 1):
+                if (Ls := InvLabels[Power]):
+                    Print("INVARIANT FAIL: Power {Power} appears in {Cnt} buckets [{Ls}]",
+                        ?Color := color{R := 1.0, G := 0.2, B := 0.2}, ?Duration := 10.0)
+                else:
+                    Print("INVARIANT FAIL: Power {Power} appears in {Cnt} buckets",
+                        ?Color := color{R := 1.0, G := 0.2, B := 0.2}, ?Duration := 10.0)
+                set CrossErrors += 1
+
+        # Within-bucket duplicates
+        D1 := FindArrayDuplicates(AvailablePowerUps)
+        D2 := FindArrayDuplicates(AvailableExoticPowers)
+        D3 := FindArrayDuplicates(AvailableMythicPowers)
+        D4 := FindArrayDuplicates(UsedPowers)
+        D5 := FindArrayDuplicates(UsedExoticPowers)
+        D6 := FindArrayDuplicates(UsedMythicPowers)
+
+        ReportDups("AvailNormal", D1)
+        ReportDups("AvailExotic", D2)
+        ReportDups("AvailMythic", D3)
+        ReportDups("UsedNormal", D4)
+        ReportDups("UsedExotic", D5)
+        ReportDups("UsedMythic", D6)
+
+        # Summary
+        var TotalObserved : int = 0
+        for (Index -> Count : InvCount):
+            set TotalObserved += 1
+        Print("INVARIANT SUMMARY: Unique IDs observed = {TotalObserved}, Cross-bucket conflicts = {CrossErrors}",
+            ?Color := color{R := 0.6, G := 0.9, B := 1.0})
+            
+    # Button entrypoint (matches your other button handler signatures)
+    RunPowerInvariants(Agent: agent):void =
+        ValidatePowerInvariants()
+
+
+var PersistentAgentMap: weak_map(player, persitable_agent_data) = map{}
+
+persitable_agent_data :=class<final><persistable>:
+    Currency : int 
+    Steals : int
+    UnlockablePowers : []logic = array{false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false}
+    UnlockableSecrets : []logic = array{false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false}
+   
+
+agent_data := class():
+    #Stat Table
+    var StatValues : [string]float = map{}
+    var MaybeStatTableCanvas : ?canvas = false
+
+    var Steals : int = 0
+    var Currency : int = 0
+    var UnlockablePowers : []logic = array{false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false}
+    var UnlockableSecrets : []logic = array{false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false}
+    var MaybeScreenCanvas : ?canvas = false
+
+
+
+#-------------------------------------------------------------------------------------------------------
