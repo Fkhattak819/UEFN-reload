@@ -1408,3 +1408,175 @@ game_manager := class(creative_device):
 
 
     # Player Functions
+    OnPlayerSpawned(Agent : agent):void=
+        Print("Player Spawned")
+        InitPlayer(Agent)
+        if (FC := Agent.GetFortCharacter[], Player := player[Agent]):
+            FC.SetVulnerability(true)
+            FC.SetVulnerability(false)
+            FC.SetVulnerability(true)
+            # TeamManager.AddPlayerToDefaultTeam(Player)
+            # TeleportManager.AgentToLobby(Agent)
+            GrantInventory(Agent, false, false)
+            # DefaultClass.ChangeClass(Agent)
+            if (CTimer := TimerMap[Agent]):
+                CTimer.HideTimer()
+        if(CP := PlayersMap[Agent]):
+            set CP.IsRespawning = false
+            if (CP.PowerUp > 0):
+                ReturnCurrentPowerToPools(CP)
+                RemovePower(CP)
+            if (not CP.CustomWeaponVFXLoopActive?):
+                spawn. CP.AttachCustomWeaponVFX()
+
+    RespawnAgent(Agent : agent):void=
+        if (FortChar := Agent.GetFortCharacter[], Player := player[Agent]):
+            Center := GameCircleCenterProp.GetTransform().Translation
+            Print("{Center}")
+            Dest := RandomPointInCircle(Center, GameCircleRadius, Center.Z)
+            
+            Player.Respawn(Dest, FortChar.GetTransform().Rotation)
+            Print("Teleported to: {Dest}")
+
+    # --- Helper: uniform sample in a disk (r = R*sqrt(u), theta = 2πv) ---
+    RandomPointInCircle(Center:vector3, R:float, Z:float):vector3 =
+        Theta := GetRandomFloat(0.0, 6.283185307179586)         # 2π
+        Rad   := R * Sqrt(GetRandomFloat(0.0, 1.0))            # sqrt(u) for uniform area
+        OffsetX := Rad * Cos(Theta)
+        OffsetY := Rad * Sin(Theta)
+        return vector3{ X:= Center.X + OffsetX, Y:= Center.Y + OffsetY, Z:= Z }
+
+
+    OnPlayerEliminated(EliminationResult : elimination_result):void=
+        spawn. EliminatedPlayerLogic(EliminationResult)
+        spawn. EliminatingPlayerLogic(EliminationResult)
+
+    EliminatedPlayerLogic(EliminationResult : elimination_result)<suspends>:void=
+        set DeathCounter += 1
+
+        Print("Entering eliminated player logic")
+        if:
+            EliminatedAgent := EliminationResult.EliminatedCharacter.GetAgent[]
+            EliminatedCP := PlayersMap[EliminatedAgent]
+            EliminatedPlayer := player[EliminatedAgent]
+            EliminatedFC := EliminatedAgent.GetFortCharacter[]
+        then:
+            if (DeathCounter = 1500):
+                EndGameDevice.Enable()
+                EndGameDevice.Activate(EliminatedAgent)
+                return
+
+            EliminatedPos := EliminationResult.EliminatedCharacter.GetTransform()
+            # Get available powers from array that can be spawned in the game
+            # Teleport that index in collectibles array to player
+            # 1 in 30 chance to spawn xp collectible
+            RandomXPChance := GetRandomInt(0, AvailablePowerUps.Length - 1 + CollectibleCoinManager.XPCoinDifficulty)
+            if (RandomXPChance = 1):
+                CollectibleCoinManager.TeleportXPCollectible(EliminatedAgent)
+                # PreviousPowerUp := EliminatedCP.GetPowerUp()
+                # if (EliminatedCP.HasPowerUp[]):
+                #     Type := DeterminePowerType(PreviousPowerUp)
+                #     AddPowerUpToArray(Type, PreviousPowerUp, "Available") 
+                #     RemovePowerUpFromArray(Type, PreviousPowerUp, "Used")
+
+            else:
+                # Clear the eliminated players powers and put it back into arrays
+                PreviousPowerUp := EliminatedCP.GetPowerUp()
+                if (EliminatedCP.HasPowerUp[]):
+                    Type := DeterminePowerType(PreviousPowerUp)
+                    AddPowerUpToArray(Type, PreviousPowerUp, "Available") 
+                    RemovePowerUpFromArray(Type, PreviousPowerUp, "Used")
+
+                RandomPowerTypeChance := GetRandomInt(0, AvailablePowerUps.Length + CollectibleCoinManager.ExoticDifficulty)
+                var RandomPowerType : PowerType = PowerType.Normal
+
+                #Determine What Coin To Drop
+                if (RandomPowerTypeChance = 1):
+                    set RandomPowerType = PowerType.Exotic
+                    RandomPowerUp := GetRandomPowerUp(RandomPowerType)
+                    Print("Our Random Powerup: {RandomPowerUp}", ?Color := color{R := 0.0, G := 1.0, B := 0.0})
+                    if (RandomPowerUp > 0):
+                        RandomIndex := RandomPowerUp - 1
+                        if:
+                            RandomIndex < CollectibleCoinManager.Collectibles.Length
+                            RandomCollectible := CollectibleCoinManager.Collectibles[RandomIndex] # PowerUps are 1 indexed, arrays are 0 indexed
+                            not UsedExoticPowers.Find[RandomPowerUp]
+                        then:
+                            Print("Found Exotic RandomPowerIndex: {RandomIndex}")
+                            set UsedExoticPowers += array{RandomPowerUp}
+                            CollectibleCoinManager.TeleportAndDrop(EliminatedAgent, RandomCollectible)
+                        else:
+                            Print("Could Not Find Exotic Power RandomPowerIndex {RandomIndex}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+                    else:
+                        Print("Could Not Find Exotic Power as RandomPowerUp was {RandomPowerUp}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+                else:
+                    RandomPowerUp := GetRandomPowerUp(RandomPowerType)
+                    Print("Our Random Powerup: {RandomPowerUp}", ?Color := color{R := 0.0, G := 1.0, B := 0.0})
+                    if (RandomPowerUp > 0):
+                        RandomIndex := RandomPowerUp - 1
+                        if:
+                            RandomIndex < CollectibleCoinManager.Collectibles.Length
+                            RandomCollectible := CollectibleCoinManager.Collectibles[RandomIndex] # PowerUps are 1 indexed, arrays are 0 indexed
+                            not UsedPowers.Find[RandomPowerUp]
+                        then:
+                            Print("Found Normal RandomPowerIndex: {RandomIndex}")
+                            set UsedPowers += array{RandomPowerUp}
+                            CollectibleCoinManager.TeleportAndDrop(EliminatedAgent, RandomCollectible)
+                        else:
+                            Print("Could Not Find Normal RandomPowerIndex {RandomIndex}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+                    else:
+                        Print("Could Not Find Normal Power as RandomPowerUp was {RandomPowerUp}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+
+                #Debug Logs
+                if. RandomPowerType = PowerType.Normal then. Print("Available Powers left: {AvailablePowerUps.Length}", ?Color := color{R := 0.0, G := 1.0, B := 0.0})
+                else if. RandomPowerType = PowerType.Exotic then. Print("Available Exotic Powers left: {AvailableExoticPowers.Length}", ?Color := color{R := 0.0, G := 1.0, B := 0.0})
+            
+            # For the ELIMINATED player
+            # spawn. DelayDeathHudSFX(EliminatedAgent)
+            RemovePower(EliminatedCP)
+            UpdatePower(EliminatedCP, EliminatedPlayer, true)
+            # TeamManager.AddPlayerToDefaultTeam(EliminatedPlayer)
+
+            # Updating Data And Respawn
+            # if. EliminatedAgentData := AgentMap[EliminatedAgent] then. SaveData(EliminatedPlayer, EliminatedAgentData)
+            # RespawnTrigger.Trigger(EliminatedAgent)  
+            RespawnAgent(EliminatedAgent)
+
+            # UpdateUIPersistent(EliminatedAgent)
+            # LoseSFX.Play(EliminatedAgent)
+
+    EliminatingPlayerLogic(EliminationResult : elimination_result)<suspends>:void=
+        # -------------------------------------------------------------------------------------#
+        # For the ELIMINATING player
+        if:
+            EliminatedAgent := EliminationResult.EliminatedCharacter.GetAgent[]
+            EliminatingAgent := EliminationResult.EliminatingCharacter?.GetAgent[]
+            EliminatingPos := EliminationResult.EliminatingCharacter?.GetTransform()
+            EliminatorCP := PlayersMap[EliminatingAgent]
+            EliminatingPlayer := player[EliminatingAgent]
+        then:
+            if(EliminatingAgent <> EliminatedAgent):
+                # spawn. SpawnDeathItems(EliminatingPos)
+                Rand := GetRandomInt(0,5)
+                if (MyAudio := CustomElimSFX[0], Rand = 1):
+                    MyAudio.Play(EliminatingAgent)
+                EliminatedPos := EliminationResult.EliminatedCharacter.GetTransform()
+                spawn. SpawnFX(DeathVFXs, EliminatedPos, 0)
+                # DeathHUD.Show(EliminatedAgent)
+            
+            # -----------------------------POWER ELIM EVENTS---------------------------------- #
+            PowerIndex := EliminatorCP.GetPowerUp()
+            if(PowerIndex = SUPERCHARGED):
+                PowerManager.SuperchargedPower.ElimEvent(EliminatingAgent)
+            if(PowerIndex = FASTERDAMAGE):
+                PowerManager.MoreSpeedFromDamagePower.ElimEvent(EliminatingAgent)
+            # -------------------------------------------------------------------------------- #
+
+            # Updating Data
+            if. KillerAgentData := AgentMap[EliminatingAgent] then. SaveData(EliminatingPlayer, KillerAgentData)
+            # AddGoldOnElim(EliminatingAgent)
+            # UpdateUIPersistent(EliminatingAgent)
+
+            #Update Stat Table
+            if. KillerAgentData := AgentMap[EliminatingAgent] then. spawn. UpdateStats(EliminatingPlayer, EliminatingAgent, KillerAgentData)
+
