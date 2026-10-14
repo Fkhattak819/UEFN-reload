@@ -1174,3 +1174,237 @@ game_manager := class(creative_device):
                 CTimer.StartCountdown(PowerManager.SnapPower.AbilityCooldown)
                 spawn. PowerManager.SnapPower.ActivateAbility(Agent, PlayersMap)
 
+    OnPlayerDamage(DamageResult : damage_result):void=
+        
+        if (CustomCauser := custom_game_action_causer[DamageResult.Source?]):
+            return
+
+        Amount := DamageResult.Amount
+        if (Instigator := DamageResult.Instigator?, InstigatorAgent := Instigator.GetInstigatorAgent[], CP : CustomPlayer = PlayersMap[InstigatorAgent], Target := fort_character[DamageResult.Target], 
+        TargetAgent := Target.GetAgent[], TargetCP : CustomPlayer = PlayersMap[TargetAgent], InstigatorAgent <> TargetAgent,  CTimer := TimerMap[InstigatorAgent]):
+
+            CPPowerUp := CP.GetPowerUp()
+            TargetCPPowerUp := TargetCP.GetPowerUp()
+
+            #Here is where you handle the powers via damage
+            if(FortDidDamage := InstigatorAgent.GetFortCharacter[], FortTookDamage := TargetAgent.GetFortCharacter[]):
+                CustomDamagedEvent(CP,CPPowerUp,FortDidDamage,TargetCP,TargetCPPowerUp,FortTookDamage,Amount,InstigatorAgent,TargetAgent)
+    
+            if (CPPowerUp = PULL):
+                spawn. PowerManager.PullPower.ApplyImpulse(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = KNOCKBACK):
+                spawn. PowerManager.KnockbackPower.ApplyImpulse(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = FREEZE and not CTimer.IsActive?):
+                if(FortChar := InstigatorAgent.GetFortCharacter[],Location := FortChar.GetTransform(),PowerManager.FreezePower.IceItemChecker.IsHoldingItem[InstigatorAgent], TargetLocation := Target.GetTransform()):
+                    CTimer.StartCountdown(PowerManager.FreezePower.AbilityCooldown)
+                    spawn. PowerManager.FreezePower.ActivateAbility(InstigatorAgent, Target, TargetAgent)
+
+            else if (CPPowerUp = ONESHOT):
+                if(PowerManager.OneShotPower.OneShotConditional.IsHoldingItem[InstigatorAgent],FortDidDamage := InstigatorAgent.GetFortCharacter[]):
+                    spawn. PowerManager.OneShotPower.OneShotTarget(Target, FortDidDamage)
+                    PowerManager.OneShotPower.OneShotSFX.Play(InstigatorAgent)
+
+            # else if (CPPowerUp = ONESHOTPICKAXE):
+            #     spawn. PowerManager.OneShotPickaxePower.KillPlayer(InstigatorAgent, Target)
+
+            # else if (CPPowerUp = PHOENIX):
+            #     spawn. PowerManager.PhoenixPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = ELECTRIC):
+                spawn. PowerManager.ElectricPower.ActivateAbility(Target)
+
+            else if (CPPowerUp = TRANSFORM and not CTimer.IsActive?):
+                if(PowerManager.TransformPower.ItemChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.TransformPower.AbilityCooldown)
+                    spawn. PowerManager.TransformPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = BLIND and not CTimer.IsActive?):
+                if(PowerManager.BlindPower.WeaponHolder.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.BlindPower.AbilityCooldown)
+                    spawn. PowerManager.BlindPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = RAT_DANCE and not CTimer.IsActive?):
+                if(PowerManager.ForceDancePower.ItemChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.ForceDancePower.AbilityCooldown)
+                    spawn. PowerManager.ForceDancePower.ActivateAbility(InstigatorAgent, Target)
+
+            else if (CPPowerUp = SALSA_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.SalsaAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.SalsaAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.SalsaAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = WINTERARC_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.WinterArcAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.WinterArcAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.WinterArcAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            # else if (CPPowerUp = SLAP_COMP_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.SlapCompAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.SlapCompAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.SlapCompAnimationPower.AbilityCooldown)
+
+            else if (CPPowerUp = MUSTARD_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.MustardAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.MustardAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.MustardAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = SIXSEVEN_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.SixSevenAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.SixSevenAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.SixSevenAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            # else if (CPPowerUp = SUI_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.SuiAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.SuiAnimationPower.ActivateAbility(InstigatorAgent)
+            #     spawn. CP.UsedRemote(PowerManager.SuiAnimationPower.AbilityCooldown)
+
+            # else if (CPPowerUp = KID_ON_BOAT_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.KidOnBoatAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.KidOnBoatAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.KidOnBoatAnimationPower.AbilityCooldown)
+
+            # else if (CPPowerUp = ONE_POUND_FISH_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.OnePoundFishAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.OnePoundFishAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.OnePoundFishAnimationPower.AbilityCooldown)
+
+            # else if (CPPowerUp = IMMUNE and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.ImmunePower.AbilityCooldown,  0.0)
+            #     spawn. PowerManager.ImmunePower.ActivateAbilty(TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.ImmunePower.AbilityCooldown)
+
+    
+    OnPlayerShieldDamage(DamageResult: damage_result):void=
+
+        if (CustomCauser := custom_game_action_causer[DamageResult.Source?]):
+            return
+
+        Amount := DamageResult.Amount
+        if (Instigator := DamageResult.Instigator?, InstigatorAgent := Instigator.GetInstigatorAgent[], CP : CustomPlayer = PlayersMap[InstigatorAgent], Target := fort_character[DamageResult.Target], 
+        TargetAgent := Target.GetAgent[], TargetCP : CustomPlayer = PlayersMap[TargetAgent], InstigatorAgent <> TargetAgent, CTimer := TimerMap[InstigatorAgent]):
+
+            TargetCPPowerUp := TargetCP.GetPowerUp()
+            CPPowerUp := CP.GetPowerUp()
+
+            if(FortDidDamage := InstigatorAgent.GetFortCharacter[], FortTookDamage := TargetAgent.GetFortCharacter[]):
+                CustomDamagedEvent(CP,CPPowerUp,FortDidDamage,TargetCP,TargetCPPowerUp,FortTookDamage,Amount, InstigatorAgent,TargetAgent)
+          
+            if (CPPowerUp = PULL):
+                spawn. PowerManager.PullPower.ApplyImpulse(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = KNOCKBACK):
+                spawn. PowerManager.KnockbackPower.ApplyImpulse(InstigatorAgent, TargetAgent)
+                    
+            else if (CPPowerUp = FREEZE and not CTimer.IsActive?):
+                if:
+                    FortChar := InstigatorAgent.GetFortCharacter[]
+                    Location := FortChar.GetTransform()
+                    PowerManager.FreezePower.IceItemChecker.IsHoldingItem[InstigatorAgent]
+                    TargetLocation := Target.GetTransform()
+                then:
+                    CTimer.StartCountdown(PowerManager.FreezePower.AbilityCooldown)
+                    spawn. PowerManager.FreezePower.ActivateAbility(InstigatorAgent, Target, TargetAgent)
+
+            else if (CPPowerUp = ONESHOT):
+                InstaKill : float = 999.0
+                if(PowerManager.OneShotPower.OneShotConditional.IsHoldingItem[InstigatorAgent], FC := InstigatorAgent.GetFortCharacter[]):
+                    spawn. PowerManager.OneShotPower.OneShotTarget(Target, FC)
+                    PowerManager.OneShotPower.OneShotSFX.Play(InstigatorAgent)
+
+            # else if (CPPowerUp = ONESHOTPICKAXE):
+            #     spawn. PowerManager.OneShotPickaxePower.KillPlayer(InstigatorAgent, Target)
+
+            # else if (CPPowerUp = PHOENIX):
+            #     spawn. PowerManager.PhoenixPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = ELECTRIC):
+                spawn. PowerManager.ElectricPower.ActivateAbility(Target)
+
+            else if (CPPowerUp = TRANSFORM and not CTimer.IsActive?):
+                if(PowerManager.TransformPower.ItemChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.TransformPower.AbilityCooldown)
+                    spawn. PowerManager.TransformPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = BLIND and not CTimer.IsActive?):
+                if(PowerManager.BlindPower.WeaponHolder.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.BlindPower.AbilityCooldown)
+                    spawn. PowerManager.BlindPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = RAT_DANCE and not CTimer.IsActive?):
+                if(PowerManager.ForceDancePower.ItemChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.ForceDancePower.AbilityCooldown)
+                    spawn. PowerManager.ForceDancePower.ActivateAbility(InstigatorAgent, Target)
+
+            else if (CPPowerUp = SALSA_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.SalsaAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.SalsaAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.SalsaAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = WINTERARC_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.WinterArcAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.WinterArcAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.WinterArcAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            # else if (CPPowerUp = SLAP_COMP_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.SlapCompAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.SlapCompAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.SlapCompAnimationPower.AbilityCooldown)
+
+            else if (CPPowerUp = MUSTARD_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.MustardAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.MustardAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.MustardAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            else if (CPPowerUp = SIXSEVEN_ANIMATION and not CTimer.IsActive?):
+                if(PowerManager.SixSevenAnimationPower.WeaponChecker.IsHoldingItem[InstigatorAgent]):
+                    CTimer.StartCountdown(PowerManager.SixSevenAnimationPower.AbilityCooldown)
+                    spawn. PowerManager.SixSevenAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+
+            # else if (CPPowerUp = SUI_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.SuiAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.SuiAnimationPower.ActivateAbility(InstigatorAgent)
+            #     spawn. CP.UsedRemote(PowerManager.SuiAnimationPower.AbilityCooldown)
+
+            # else if (CPPowerUp = KID_ON_BOAT_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.KidOnBoatAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.KidOnBoatAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.KidOnBoatAnimationPower.AbilityCooldown)
+
+            # else if (CPPowerUp = ONE_POUND_FISH_ANIMATION and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.OnePoundFishAnimationPower.AbilityCooldown, 0.0)
+            #     spawn. PowerManager.OnePoundFishAnimationPower.ActivateAbility(InstigatorAgent, TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.OnePoundFishAnimationPower.AbilityCooldown)
+
+            # else if (CPPowerUp = IMMUNE and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.ImmunePower.AbilityCooldown,  0.0)
+            #     spawn. PowerManager.ImmunePower.ActivateAbilty(TargetAgent)
+            #     spawn. CP.UsedRemote(PowerManager.ImmunePower.AbilityCooldown)
+
+
+    CustomDamagedEvent<private>(CPDidDamage:CustomPlayer,PowerIndex:int,FortDidDamage:fort_character, CPTookDamage:CustomPlayer,
+    TookDamagePowerIndex:int,FortTookDamage:fort_character, Amount:float, InstigatorAgent : agent, TargetAgent : agent):void=
+            Print("Custom Damaged Event")
+            if. PowerIndex = BACKSTAB then. spawn. PowerManager.BackstabPower.BackstabEvent(FortDidDamage,FortTookDamage,Amount,true)
+            if. PowerIndex = LIFESTEAL then. PowerManager.LifeStealPower.DamagedEvent(FortDidDamage,Amount)
+            if. PowerIndex = ASTRONAUT then. spawn. PowerManager.AstronautPower.DamagedEvent(FortDidDamage,FortTookDamage,Amount)
+            if. PowerIndex = DANCE then. PowerManager.DancePower.DamagedEvent(FortDidDamage, FortTookDamage)
+            if. PowerIndex = SUPERCHARGED then. spawn. PowerManager.SuperchargedPower.DidDamageEvent(FortDidDamage,FortTookDamage,Amount)
+            if. PowerIndex = FASTERDAMAGE then. spawn. PowerManager.MoreSpeedFromDamagePower.DamageEvent(FortDidDamage, Amount)
+            else {}
+
+            if. TookDamagePowerIndex = BACKSTAB then. spawn. PowerManager.BackstabPower.BackstabEvent(FortTookDamage,FortDidDamage,Amount,false)
+            if. TookDamagePowerIndex = SUPERCHARGED then. spawn. PowerManager.SuperchargedPower.TookDamageEvent(FortTookDamage, Amount)
+            if (CTimer := TimerMap[TargetAgent], TookDamagePowerIndex = IMMUNE and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.ImmunePower.AbilityCooldown)
+                spawn. PowerManager.ImmunePower.ActivateAbilty(TargetAgent)
+            else {}
+
+            if(CPDidDamage.CurrentWeaponID <> -1):
+                if (Weapon := SecretWeapons[CPDidDamage.CurrentWeaponID]):
+                    spawn. Weapon.AnimationOnPlayerDamage(CPDidDamage, CPTookDamage, CPDidDamage.CurrentWeaponID)
+            else{}
+
+
+    # Player Functions
