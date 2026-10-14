@@ -1776,3 +1776,67 @@ game_manager := class(creative_device):
             if(CurrencyBlock := text_block[ScreenCanvas.Slots[CurrencyBlockIndex].Widget]):
                 CurrencyBlock.SetText(S2M("{AgentData.Currency}"))
         
+    CreateScreenCanvas():canvas=
+        var CustomCanvasSlots: []canvas_slot = array{}
+        set CustomCanvasSlots += array
+        {
+            CanvasSlot0 := canvas_slot:
+                Anchors := anchors{Minimum := vector2{ X:= 1.0, Y:= 0.5}, Maximum := vector2{ X:=1.0, Y := 0.5}}
+                Offsets := margin{Top := -10.0, Left := -120.0, Right := 0.0, Bottom := 100.0}
+                Alignment := vector2{X := 0.5, Y := 0.5 }
+                SizeToContent := true
+                ZOrder := 1
+                Widget := texture_block{DefaultImage := CustomAssets.DisplayCrownText, DefaultDesiredSize := vector2{X:= 230.0, Y:= 220.0} }
+
+            CanvasSlot1 := canvas_slot:
+                Anchors := anchors{Minimum := vector2{ X:= 1.0, Y:= 0.5}, Maximum := vector2{ X:=1.0, Y := 0.5}}
+                Offsets := margin{Top := -130.0, Left := -150.0, Right := 0.0, Bottom := 100.0}
+                Alignment := vector2{X := 0.5, Y := 0.5 }
+                SizeToContent := true
+                ZOrder := 1
+                Widget := texture_block{DefaultImage := CustomAssets.PlayerCounter, DefaultDesiredSize := vector2{X:= 300.0, Y:= 110.0} }
+
+            CanvasSlot2 := canvas_slot:
+                Anchors := anchors{Minimum := vector2{ X:= 1.0, Y:= 0.5}, Maximum := vector2{ X:=1.0, Y := 0.5}}
+                Offsets := margin{Top := 100.0, Left := -120.0, Right := 0.0, Bottom := 100.0}
+                Alignment := vector2{X := 0.5, Y := 0.5 }
+                SizeToContent := true
+                ZOrder := 1
+                Widget := texture_block{DefaultImage := CustomAssets.DisplayCoinText, DefaultDesiredSize := vector2{X:= 230.0, Y:= 220.0} }
+        }
+        
+        set CustomCanvasSlots += array
+        {
+            CanvasSlot3 := canvas_slot:
+                Anchors := anchors{Minimum := vector2{ X:= 1.0, Y:= 0.5}, Maximum := vector2{ X:=1.0, Y := 0.5}}
+                Offsets := margin{Top := -10.0, Left := -90.0, Right := 0.0, Bottom := 0.0}
+                Alignment := vector2{X := 0.5, Y := 0.5 }
+                SizeToContent := true
+                ZOrder := 1
+                Widget := text_block{DefaultText := S2M("Crown Wins"), DefaultTextColor := NamedColors.White, DefaultShadowColor := NamedColors.Black, 
+                DefaultShadowOpacity := 1.0, DefaultShadowOffset := option{vector2{X := 1.5, Y := 1.5}}}
+
+            CanvasSlot4 := canvas_slot:
+                Anchors := anchors{Minimum := vector2{ X:= 1.0, Y:= 0.5}, Maximum := vector2{ X:= 1.0, Y := 0.5}}
+                Offsets := margin{Top := -130.0, Left := -130.0, Right := 0.0, Bottom := 0.0}
+                Alignment := vector2{X := 0.5, Y := 0.5 }
+                SizeToContent := true
+                ZOrder := 1
+                Widget := text_block{DefaultText := S2M("Players: 0"), DefaultTextColor := NamedColors.White, DefaultShadowColor := NamedColors.Gray, 
+                DefaultShadowOpacity := 0.5, DefaultShadowOffset := option{vector2{X := 1.5, Y := 1.5}}}
+
+            CanvasSlot5 := canvas_slot:
+                Anchors := anchors{Minimum := vector2{ X:= 1.0, Y:= 0.5}, Maximum := vector2{ X:= 1.0, Y := 0.5}}
+                Offsets := margin{Top := 100.0, Left := -90.0, Right := 0.0, Bottom := 0.0}
+                Alignment := vector2{X := 0.5, Y := 0.5 }
+                SizeToContent := true
+                ZOrder := 1
+                Widget := text_block{DefaultText := S2M("Currency"), DefaultTextColor := NamedColors.White, DefaultShadowColor := NamedColors.Black, 
+                DefaultShadowOpacity := 1.0, DefaultShadowOffset := option{vector2{X := 1.5, Y := 1.5}}}
+        }
+
+        CustomCanvas : canvas = canvas:
+            Slots:= CustomCanvasSlots
+
+        return CustomCanvas
+
