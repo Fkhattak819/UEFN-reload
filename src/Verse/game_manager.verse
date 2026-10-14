@@ -625,3 +625,86 @@ game_manager := class(creative_device):
         ResetAllVFX.Pickup(Agent)
         ResetAllVFX2.Pickup(Agent)
 
+    RegisterPower(Id : int, T : PowerType):void=
+        # Fail fast if duplicate registration
+        if (Existing := PowerCatalog[Id]):
+            Print("Duplicate PowerCatalog entry for {Id}.", ?Color := color{R:=1.0,G:=0.2,B:=0.2})
+        else:
+            if (set PowerCatalog[Id] = T) {}
+
+    InitPowerCatalog():void=
+        # --- Normal Powers ---
+        RegisterPower(PULL,            PowerType.Normal)
+        RegisterPower(TELEPORT_BEHIND, PowerType.Normal)
+        RegisterPower(FREEZE,          PowerType.Normal)
+        RegisterPower(FLOOD,           PowerType.Normal)
+        RegisterPower(AURA,            PowerType.Normal)
+        RegisterPower(INVIS,           PowerType.Normal)
+        RegisterPower(TIME_TRAVEL,     PowerType.Normal)
+        RegisterPower(REWIND,          PowerType.Normal)
+        RegisterPower(BULL,            PowerType.Normal)
+        RegisterPower(BACKSTAB,        PowerType.Normal)
+        RegisterPower(LIFESTEAL,       PowerType.Normal)
+        RegisterPower(KNOCKBACK,       PowerType.Normal)
+        RegisterPower(CIRCLE_BOMBS,    PowerType.Normal)
+        RegisterPower(AGILITY,         PowerType.Normal)
+        RegisterPower(DANCE,           PowerType.Normal)
+        RegisterPower(SUPERCHARGED,    PowerType.Normal)
+        RegisterPower(IMMUNE,          PowerType.Normal)
+        RegisterPower(FASTERDAMAGE,    PowerType.Normal)
+        RegisterPower(BUSH,            PowerType.Normal)
+        RegisterPower(AIMBOT,          PowerType.Normal)
+        RegisterPower(ANT,             PowerType.Normal)
+        RegisterPower(ELECTRIC,        PowerType.Normal)
+        RegisterPower(VOLLEY_BOMBS,    PowerType.Normal)
+        RegisterPower(SPIDEY,          PowerType.Normal)
+        RegisterPower(CHAR,            PowerType.Normal)
+        RegisterPower(CHAIRPULL,       PowerType.Normal)
+        RegisterPower(MISSILE,         PowerType.Normal)
+        RegisterPower(CREEPER,         PowerType.Normal)
+        RegisterPower(CHAR2,           PowerType.Normal)
+        RegisterPower(JUMPSCARE,       PowerType.Normal)
+        RegisterPower(BLIND,           PowerType.Normal)
+        RegisterPower(PHONE_CALL_MUL,  PowerType.Normal)
+        RegisterPower(PROPFOLLOW,      PowerType.Normal)
+        RegisterPower(RAT_DANCE,       PowerType.Normal)
+        RegisterPower(SALSA_ANIMATION, PowerType.Normal)
+        RegisterPower(MUSTARD_ANIMATION,   PowerType.Normal)
+        RegisterPower(SIXSEVEN_ANIMATION,  PowerType.Normal)
+        RegisterPower(TRANSFORM,       PowerType.Normal)
+
+        # --- Exotic Powers ---
+        RegisterPower(ONESHOT,             PowerType.Exotic)
+        RegisterPower(ASTRONAUT,           PowerType.Exotic)
+        RegisterPower(SELFREVIVE,          PowerType.Exotic)
+        RegisterPower(FINISHER2,           PowerType.Exotic)
+        RegisterPower(WINTERARC_ANIMATION, PowerType.Exotic)
+
+        # --- Mythic Powers ---
+        RegisterPower(XRAY,               PowerType.Mythic)
+        RegisterPower(SNAP,               PowerType.Mythic)
+        RegisterPower(FLY,                PowerType.Mythic)
+        RegisterPower(FINISHER3,          PowerType.Mythic)
+        RegisterPower(ENGLISH_OR_SPANISH, PowerType.Mythic)
+
+    RebuildPoolsFromCatalog():void=
+        set AvailablePowerUps     = array{}
+        set AvailableMythicPowers = array{}
+        set AvailableExoticPowers = array{}
+        set MythicPowersList      = array{}
+        set ExoticPowersList      = array{}
+
+        for (Id -> T : PowerCatalog):
+            case(T):
+                PowerType.Normal =>
+                    set AvailablePowerUps += array{Id}
+                PowerType.Mythic =>
+                    set AvailableMythicPowers += array{Id}
+                    set MythicPowersList      += array{Id}
+                PowerType.Exotic =>
+                    set AvailableExoticPowers += array{Id}
+                    set ExoticPowersList      += array{Id}
+
+
+    # Power Management
+    # REVIEW POWERS FOR NEW FUNCTIONALITY AND GAME TYPE
