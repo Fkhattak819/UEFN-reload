@@ -1045,3 +1045,132 @@ game_manager := class(creative_device):
                 CTimer.ShowTimer()
 
 
+    RemovePower<private>(CP: CustomPlayer):void =
+        CPPowerIndex := CP.GetPowerUp()
+        Agent := CP.MyAgentObj
+        if(CPPowerIndex <> -1):
+            Print("Removing Power index {CPPowerIndex}")
+
+            if. CPPowerIndex = FLOOD then. PowerManager.FloodPower.Delete()
+            if. CPPowerIndex = MISSILE then. PowerManager.MissilePower.MissileDevice.Delete()
+            if. CPPowerIndex = TELEPORT_BEHIND then. PowerManager.TPBehindPower.Delete()
+            if. CPPowerIndex = ONESHOT then. PowerManager.OneShotPower.Delete(Agent)
+            if. CPPowerIndex = AURA then. PowerManager.AuraPower.Delete()
+            if. CPPowerIndex = INVIS then. PowerManager.InvisPower.Delete()
+            if. CPPowerIndex = TIME_TRAVEL then. PowerManager.TimeTravelPower.Delete()
+            if. CPPowerIndex = BULL then. PowerManager.BullPower.Delete()
+            if. CPPowerIndex = LIFESTEAL then. PowerManager.LifeStealPower.Delete()
+            if. CPPowerIndex = ASTRONAUT then. PowerManager.AstronautPower.Delete()
+            if. CPPowerIndex = CIRCLE_BOMBS then. PowerManager.CircleBombsPower.Delete()
+            if. CPPowerIndex = XRAY then. PowerManager.XrayPower.Delete()
+            if. CPPowerIndex = AGILITY then. PowerManager.AgilityPower.Delete()
+            if. CPPowerIndex = DANCE then. PowerManager.DancePower.Delete()
+            if. CPPowerIndex = SELFREVIVE then. PowerManager.SelfRevivePower.Delete()
+            if. CPPowerIndex = FASTERDAMAGE then. PowerManager.MoreSpeedFromDamagePower.Delete(Agent)
+            if. CPPowerIndex = BUSH then. PowerManager.BushPower.Delete()
+            if. CPPowerIndex = AIMBOT then. PowerManager.AimbotPower.Delete()
+            if. CPPowerIndex = ANT then. PowerManager.AntPower.Delete()
+            if. CPPowerIndex = VOLLEY_BOMBS then. PowerManager.VolleyBombsPower.Delete()
+            if. CPPowerIndex = SPIDEY then. PowerManager.SpideyPower.Delete()
+            # if. CPPowerIndex = BOUNTY_HUNTER then. PowerManager.BountyHunterPower.Delete()
+            if. CPPowerIndex = CHAR then. PowerManager.TurnIntoCharPower.Delete(Agent)
+            if. CPPowerIndex = CHAR2 then. PowerManager.TurnIntoCharPower2.Delete(Agent)
+            if. CPPowerIndex = CHAIRPULL then. PowerManager.ChairPullPower.Delete()
+            if. CPPowerIndex = FINISHER3 then. PowerManager.Teleport3PeoplePower.Delete()
+            if. CPPowerIndex = ENGLISH_OR_SPANISH then. PowerManager.EnglishOrSpanishPower.Delete()
+            if. CPPowerIndex = CREEPER then. PowerManager.CreeperPower.Delete()
+            if. CPPowerIndex = TRANSFORM then. PowerManager.TransformPower.Delete()
+            if. CPPowerIndex = JUMPSCARE then. PowerManager.JumpscarePower.Delete()
+            if. CPPowerIndex = BLIND then. PowerManager.BlindPower.Delete()
+            if. CPPowerIndex = PHONE_CALL_MUL then. PowerManager.PhoneCallMulPower.Delete()
+            if. CPPowerIndex = PROPFOLLOW then. PowerManager.PropFollowPower.Delete()
+            if. CPPowerIndex = IMMUNE then. PowerManager.ImmunePower.Delete()
+
+            CP.RemovePowerUp()
+            # if. Player := player[CP.MyAgentObj] then. TeamManager.AddPlayerToDefaultTeam(Player)
+            if(CTimer := TimerMap[CP.MyAgentObj]):
+                CTimer.Stop()
+                CTimer.HideTimer()
+                CTimer.ResetText()
+                ClearUI.Show(Agent)
+
+
+
+    OnPrimaryClick(Agent : agent):void=
+        if (CP := PlayersMap[Agent], Player := player[Agent], PlayerUI := GetPlayerUI[Player], CTimer := TimerMap[Agent]):
+            CPPowerUp := CP.GetPowerUp()
+            Milliseconds : float = 0.0
+            #added spawns make sure to error check!
+            
+            if (CPPowerUp = FLOOD and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.FloodPower.AbilityCooldown)
+                spawn. PowerManager.FloodPower.ActivateAbilty(CP, PlayersMap)
+
+            else if (CPPowerUp = TELEPORT_BEHIND and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.TPBehindPower.AbilityCooldown)
+                spawn. PowerManager.TPBehindPower.OnTeleportPower(CP, PlayersMap)
+
+            else if (CPPowerUp = TIME_TRAVEL and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.TimeTravelPower.AbilityCooldown)
+                spawn. PowerManager.TimeTravelPower.ActivatePowerup(Agent)
+
+            else if (CPPowerUp = CIRCLE_BOMBS and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.CircleBombsPower.AbilityCooldown)   
+                spawn. PowerManager.CircleBombsPower.ActivatePowerup(CP,PlayersMap)
+
+            else if (CPPowerUp = VOLLEY_BOMBS and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.VolleyBombsPower.AbilityCooldown)
+                spawn. PowerManager.VolleyBombsPower.ActivateAbility(Agent)
+
+            else if (CPPowerUp = REWIND and not CTimer.IsActive?):
+                spawn{PowerManager.RewindPower.ActivateAbility(CP,CTimer)}
+
+            else if (CPPowerUp = FINISHER3 and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.Teleport3PeoplePower.AbilityCooldown)
+                spawn. PowerManager.Teleport3PeoplePower.ActivateAbility(Agent,PlayersMap)
+
+            else if (CPPowerUp = BUSH and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.BushPower.AbilityCooldown)
+                spawn. PowerManager.BushPower.ActivatePowerup(Agent)
+
+            else if (CPPowerUp = ANT and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.AntPower.AbilityDuration + PowerManager.AntPower.AbilityCooldown)
+                spawn. PowerManager.AntPower.ActivatePowerup(CP, PlayersMap)
+
+            else if (CPPowerUp = CHAIRPULL and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.ChairPullPower.AbilityCooldown)
+                spawn. PowerManager.ChairPullPower.ActivatePowerup(CP, PlayersMap)
+
+            else if (CPPowerUp = MISSILE and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.MissilePower.AbilityCooldown)
+                spawn. PowerManager.MissilePower.ActivateAbility(Agent)
+
+            else if (CPPowerUp = ENGLISH_OR_SPANISH and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.EnglishOrSpanishPower.AbilityCooldown)
+                spawn. PowerManager.EnglishOrSpanishPower.ActivateAbility(PlayersMap, Agent)
+
+            else if (CPPowerUp = CREEPER and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.CreeperPower.AbilityCooldown)
+                spawn. PowerManager.CreeperPower.ActivateAbility(Agent)
+
+            else if (CPPowerUp = JUMPSCARE and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.JumpscarePower.AbilityCooldown)
+                spawn. PowerManager.JumpscarePower.ActivateAbility(CP, PlayersMap)
+
+            else if (CPPowerUp = PHONE_CALL_MUL and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.PhoneCallMulPower.AbilityCooldown)
+                spawn. PowerManager.PhoneCallMulPower.PhoneCallSpawner(CP, PlayersMap)
+
+            else if (CPPowerUp = PROPFOLLOW and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.PropFollowPower.AbilityCooldown)
+                spawn. PowerManager.PropFollowPower.ActivateAbility(CP, PlayersMap)
+
+            # else if (CPPowerUp = SHOOT_PROP and not CP.UsedPower?):
+            #     CTimer.StartCountdown(PowerManager.ShootPropPower.AbilityCooldown, Milliseconds)
+            #     spawn. PowerManager.ShootPropPower.ActivateAbility()
+            #     spawn. CP.UsedRemote(PowerManager.ShootPropPower.AbilityCooldown)
+
+            else if (CPPowerUp = SNAP and not CTimer.IsActive?):
+                CTimer.StartCountdown(PowerManager.SnapPower.AbilityCooldown)
+                spawn. PowerManager.SnapPower.ActivateAbility(Agent, PlayersMap)
+
