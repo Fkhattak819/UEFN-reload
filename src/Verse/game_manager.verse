@@ -308,3 +308,63 @@ game_manager := class(creative_device):
         # TeamManager.CheckIfTeamsAreEqual()
         spawn. ResetBuildsLoop()
 
+    UnlockSecretAndSave<public>(Player : player, Index : int):void=
+        Print("UnlockSecretAndSave: {Index}")
+        if (Agent := agent[Player], AgentData := AgentMap[Agent]):
+
+            case(Index):
+                0 => UnlockSwitch(Agent, Index) #Banana Gun                By Mid - Friday UNLOCK VIA CODE
+                1 => # TeleportToPlaneGame(Agent) Croc Gun
+                2 => # TeleportToForestGame(Agent) Deer Gun
+                3 => # TeleportToGardenGame(Agent) Strawberry Gun
+                4 => # 
+                5 => MinigameManager.SharkGame.TeleportToMinigame(Agent) # Shark Gun              By Mid - Friday UNLOCK VIA SHOOT TRIGGER IN HAND
+                6 => MinigameManager.OrcaGame.TeleportToMinigame(Agent) # Orca Gun            By Mid - Friday UNLOCK VIA BUTTON
+                7 => MinigameManager.CarGame.TeleportToMinigame(Agent) # Biycle Gun                   By Mid - Friday UNLOCK VIA BUTTON
+                8 => # 
+                9 => PowerManager.FlyPower.ClassSelector.ChangeClass(Agent)
+                10 => PowerManager.AimbotPower.AimerDevice.AddTo(Agent)
+
+                _ => Print("")
+            
+    UnlockSwitch(Agent : agent, Index : int):void=
+        if (not PinpadTriggers[Index].Switch.GetCurrentState[Agent]):
+            # optional visuals per pinpad row
+            if (Switch := PinpadTriggers[Index].Switch):
+                Switch.TurnOn(Agent)
+                Switch.SetState(Agent, true)
+                Switch.SaveState(Agent)
+
+    UnlockSharkWeapon(MaybeAgent : ?agent):void=
+        if (Agent := MaybeAgent?, MinigameManager.SharkGame.GunChecker.IsHoldingItem[Agent]):
+            UnlockSwitch(Agent, SHARK_GUN_INDEX)
+
+    UnlockBikeWeapon(Agent : agent):void=
+        UnlockSwitch(Agent, BIKE_GUN_INDEX)
+    
+    UnlockOrcaWeapon(Agent : agent):void=
+        UnlockSwitch(Agent, ORCA_GUN_INDEX)
+
+    OnPinpadButtonInteracted(Agent : agent, Index : int):void=
+        if (Player := player[Agent], AgentData := AgentMap[Agent]):
+            if (PinpadTriggers[Index].Switch.GetCurrentState[Agent]):
+                if (ItemGranter := PinpadTriggers[Index].ItemGranter):
+                    Print("Agent Got Granted Secret at Index {Index}")
+                    ItemGranter.GrantItem(Agent)
+
+    AwardXpCollectable(Agent : agent):void=
+        CollectableAccolade.Award(Agent)
+
+    SaveData(Player : player, AgentData : agent_data):void=
+        block:
+        # if(set PersistentAgentMap[Player] = AgentDataTmpToPersistent(AgentData)):
+
+    StartGame(Agent : ?agent):void=
+        Print("STARTING GAME")
+        spawn. SpawnStartGame()
+
+    SpawnStartGame()<suspends>:void=
+        # TeamManager.ResetTeams(PlayersMap)
+        MinigameManager.CarGame.StartMutatorEvents()
+        spawn. StartSafeZone()
+
