@@ -432,3 +432,150 @@ game_manager := class(creative_device):
     EnteredAuraMutator(Agent : agent):void=
         PowerManager.AuraPower.AuraSFX.Play(Agent)
 
+    OnCollectibleDespawned(Obj : collectible):void =
+        Print("Despawned: {Obj.PowerIndex}")
+        AddPowerUpToArray(Obj.Type, Obj.PowerIndex, "Available")
+        RemovePowerUpFromArray(Obj.Type, Obj.PowerIndex, "Used")
+
+    ReturnCurrentPowerToPools(CP: CustomPlayer):void =
+        Old := CP.GetPowerUp()
+        if (Old > 0):
+            T := DeterminePowerType(Old)
+            AddPowerUpToArray(T, Old, "Available")
+            RemovePowerUpFromArray(T, Old, "Used")  # if present
+
+    GetRandomPowerUp(Type : PowerType) : int =
+        #This ensures that no one has the same power
+        var RandomPower : int = -1
+        if (Array := GetAvailablePowerUpArray[Type]):
+            if (Array.Length = 0) {}
+            else:
+                RandomIndex := GetRandomInt(0, Array.Length - 1)
+                if (RandomPowerUp := Array[RandomIndex]):
+                    set RandomPower = RandomPowerUp
+                    if (New := Array.RemoveElement[RandomIndex]):
+                        SetAvailablePowerUpArray(Type, New)
+                        Print("Powers Left: {AvailablePowerUps.Length}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+        return RandomPower
+        # if (Type = PowerType.Normal):
+        #     RandomIndex := GetRandomInt(0, AvailablePowerUps.Length - 1)
+        #     if(RandomPowerUp := AvailablePowerUps[RandomIndex]):
+        #         set RandomPower = RandomPowerUp
+        #         if(Available := AvailablePowerUps.RemoveElement[RandomIndex]):
+        #             set AvailablePowerUps = Available
+        #             Print("Powers Left: {AvailablePowerUps.Length}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+        # else if (Type = PowerType.Exotic):
+        #     RandomIndex := GetRandomInt(0, AvailableExoticPowers.Length - 1)
+        #     if(RandomPowerUp := AvailableExoticPowers[RandomIndex]):
+        #         set RandomPower = RandomPowerUp
+        #         if(Available := AvailableExoticPowers.RemoveElement[RandomIndex]):
+        #             set AvailableExoticPowers = Available
+        #             Print("Powers Left Exotic: {AvailableExoticPowers.Length}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+        # else if (Type = PowerType.Mythic):
+        #     RandomIndex := GetRandomInt(0, AvailableMythicPowers.Length - 1)
+        #     if(RandomPowerUp := AvailableMythicPowers[RandomIndex]):
+        #         set RandomPower = RandomPowerUp
+        #         if(Available := AvailableMythicPowers.RemoveElement[RandomIndex]):
+        #             set AvailableMythicPowers = Available
+        #             Print("Powers Left Mythic: {AvailableMythicPowers.Length}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+
+        # return RandomPower
+
+    OnCollectedPowerEvent(Agent : agent, Collectible : collectible):void=
+        Collectible.StopEvent.Signal()
+        Collectible.CollectibleSFX.Play(Agent)
+
+        #For the StatLeaderboard
+        if(AgentData := AgentMap[Agent], Player := player[Agent]):
+            set AgentData.Steals += 1
+            if (set AgentData.StatValues["Steals"] = (AgentData.Steals * 1.0)){}
+            UpdateSteal(Player, AgentData.Steals)
+            SaveData(Player, AgentData)
+            StatBoardManager.UpdateStatTableCanvas(AgentMap)
+
+        NewPower := Collectible.PowerIndex
+        if (CP := PlayersMap[Agent], NewPower <> -1):
+
+            PreviousPowerUp := CP.GetPowerUp()
+            PreviousPowerUpType := DeterminePowerType(PreviousPowerUp)
+            Print("Player Old Power: {PreviousPowerUp}", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+            Print("Player New Power: {NewPower}", ?Color := color{R := 0.0, G := 1.0, B := 0.0})
+
+            
+            # Add previous power-up to available array
+            AddPowerUpToArray(PreviousPowerUpType, PreviousPowerUp, "Available")
+            # Remove previous power-up from used array if player had one
+            RemovePowerUpFromArray(PreviousPowerUpType, PreviousPowerUp, "Used")
+    
+            # Update player's power-up
+            RemovePower(CP)
+            CP.SetPowerUp(NewPower)
+            AssignPowerup(Agent, NewPower)
+
+            # Add new power-up to used array
+            # AddPowerUpToArray(Collectible.Type, NewPower, "Used") #commented this because we add it tp the usedpower up array when it drops
+            RemovePowerUpFromArray(Collectible.Type, NewPower, "Available")
+
+            Print("Power Updated Correctly", ?Color := color{R := 0.0, G := 0.0, B := 1.0})
+            CollectibleCoinManager.CollectedXP.Award(Agent)
+
+    # Helper function to remove a power-up from the appropriate array
+    RemovePowerUpFromArray(Type : PowerType, PowerUp : int, ArrayType : string):void=
+        if(PowerUp > 0):
+            if (ArrayType = "Available", Array := GetAvailablePowerUpArray[Type]):
+                if (Index := Array.Find[PowerUp]):
+                    if (NewArray := Array.RemoveElement[Index]):
+                        case(Type):
+                            PowerType.Normal => set AvailablePowerUps = NewArray
+                            PowerType.Exotic => set AvailableExoticPowers = NewArray
+                            PowerType.Mythic => set AvailableMythicPowers = NewArray
+            else if (ArrayType = "Used", Array := GetUsedPowerUpArray[Type]):
+                if (Index := Array.Find[PowerUp]):
+                    if (NewArray := Array.RemoveElement[Index]):
+                        case(Type):
+                            PowerType.Normal => set UsedPowers = NewArray
+                            PowerType.Exotic => set UsedExoticPowers = NewArray
+                            PowerType.Mythic => set UsedMythicPowers = NewArray
+
+    # Helper function to add a power-up to the appropriate array
+    AddPowerUpToArray(Type : PowerType, PowerUp : int, ArrayType : string):void=
+        if(PowerUp > 0):
+            if (ArrayType = "Available", Array := GetAvailablePowerUpArray[Type]):
+                SetAvailablePowerUpArray(Type, Array + array{PowerUp})
+            else if (ArrayType = "Used", Array := GetUsedPowerUpArray[Type]):
+                SetUsedPowerUpArray(Type, Array + array{PowerUp})
+
+    # Helper function to get the appropriate available power-up array based on type
+    GetAvailablePowerUpArray(Type : PowerType)<transacts><decides>:[]int =
+        case(Type):
+            PowerType.Normal => AvailablePowerUps
+            PowerType.Exotic => AvailableExoticPowers
+            PowerType.Mythic => AvailableMythicPowers
+    
+    # Helper function to set the appropriate available power-up array based on type
+    SetAvailablePowerUpArray(Type : PowerType, NewArray : []int):void=
+        case(Type):
+            PowerType.Normal => set AvailablePowerUps = NewArray
+            PowerType.Exotic => set AvailableExoticPowers = NewArray
+            PowerType.Mythic => set AvailableMythicPowers = NewArray
+
+    # Helper function to set the appropriate available power-up array based on type
+    SetUsedPowerUpArray(Type : PowerType, NewArray : []int):void=
+        case(Type):
+            PowerType.Normal => set UsedPowers = NewArray
+            PowerType.Exotic => set UsedExoticPowers = NewArray
+            PowerType.Mythic => set UsedMythicPowers = NewArray
+
+    # Helper function to get the appropriate power-up array based on type
+    GetUsedPowerUpArray(Type : PowerType)<transacts><decides>:[]int =
+        case(Type):
+            PowerType.Normal => UsedPowers
+            PowerType.Exotic => UsedExoticPowers
+            PowerType.Mythic => UsedMythicPowers
+
+    # FindPowerUpType(PowerUp : int):PowerType=
+    #     if. UsedPowers.Find[PowerUp] then. return PowerType.Normal
+    #     else if. UsedExoticPowers.Find[PowerUp] then. return PowerType.Exotic
+    #     else if. UsedMythicPowers.Find[PowerUp] then. return PowerType.Mythic
+    #     else. return PowerType.Normal
+
