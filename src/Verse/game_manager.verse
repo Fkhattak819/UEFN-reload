@@ -1632,3 +1632,66 @@ game_manager := class(creative_device):
             SpawnedProp.Dispose()
             Print("disposed vfx")
 
+    InitPlayer(Agent : agent):void=
+        AddToCustomPlayer(Agent)
+        AddToTimerMap(Agent)
+        AddToAgentDataMap(Agent)
+
+    AddToCustomPlayer(Agent: agent):void=
+        if (PlayerExists := PlayersMap[Agent]):
+            return
+        else:
+            Print("Adding player to custom map (Game Manager)")
+            if (FortCharacter := Agent.GetFortCharacter[]):
+                FCDamagedEvent := FortCharacter.DamagedEvent().Subscribe(OnPlayerDamage)
+                FCDamagedShieldEvent := FortCharacter.DamagedShieldEvent().Subscribe(OnPlayerShieldDamage)
+                FCEliminatedEvent := FortCharacter.EliminatedEvent().Subscribe(OnPlayerEliminated)
+            CP : CustomPlayer = CustomPlayer{
+                MyAgentObj := Agent,
+                SecretWeapons := SecretWeapons,
+                PinpadTriggers := PinpadTriggers,
+                ResetCustomWeaponVFX := ResetCustomWeaponVFX
+            }
+            for (Index -> Weapon : SecretWeapons):
+                if. set CP.HasCustomWeaponVFX[Index] = false
+            option. set PlayersMap[Agent] = CP
+
+            # CP.Button1.OnClick().Subscribe(PowerSelected1)
+            # CP.Button2.OnClick().Subscribe(PowerSelected2)
+            # CP.Button3.OnClick().Subscribe(PowerSelected3)
+            # CP.MythicalButton.OnClick().Subscribe(MythicalPowerSelected)
+            # CP.ShuffleButton.OnClick().Subscribe(ShuffleSelected)
+            # if. Player := player[Agent] then. TeamManager.AddPlayerToDefaultTeam(Player)
+
+    AddToTimerMap(Agent : agent):void= 
+         if (PlayerExists := TimerMap[Agent]):
+            Print("Player already exists in custom map (Timer)")
+        else:
+            if(Player := player[Agent]):
+                if (PlayerUI := GetPlayerUI[Player]):
+                    NewTimer := Timer{}
+                    NewTimer.InitUI(PlayerUI)
+                    if (set TimerMap[Agent] = NewTimer):
+                        NewTimer.HideTimer()
+                       Print("Inited Timer in TimerMap")
+
+    AddToAgentDataMap(Agent : agent):void=
+        if(AgentData := AgentMap[Agent]):
+            #do nothing
+            return
+        else:
+            if(set AgentMap[Agent] = agent_data{}):
+                if(AgentData := AgentMap[Agent]):
+                    #Stat Table
+                    for (StatBoardManager.Stat : StatBoardManager.Stats):
+                        if (set AgentData.StatValues[Stat.StatName] = 0.0):
+
+            StatTableCanvas := StatBoardManager.CreateStatTableCanvas()
+            if(AgentData := AgentMap[Agent]):
+                set AgentData.MaybeStatTableCanvas = option{ StatTableCanvas }
+                UpdateStats(Agent, AgentData)
+            if(Player := player[Agent], PlayerUI := GetPlayerUI[Player]):
+                PlayerUI.AddWidget(StatTableCanvas)
+                StatBoardManager.UpdateStatTableCanvas(AgentMap)
+                    
+            
