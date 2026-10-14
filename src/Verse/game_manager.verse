@@ -1695,3 +1695,84 @@ game_manager := class(creative_device):
                 StatBoardManager.UpdateStatTableCanvas(AgentMap)
                     
             
+    OnPlayerRemoved(OutPlayer : player):void=
+        if(Agent := agent[OutPlayer], CP := PlayersMap[Agent]):
+            UpdatePower(CP, OutPlayer, true)
+            ReturnCurrentPowerToPools(CP)
+            # remove from players map when player leaves game
+            if (ActualPlayer := PlayersMap[Agent]):
+                var TempAllPlayersMap:[agent]CustomPlayer = map{}
+                for (Key -> Value : PlayersMap, Key <> Agent):
+                    set TempAllPlayersMap = ConcatenateMaps(TempAllPlayersMap, map{Key => Value})
+
+                set PlayersMap = TempAllPlayersMap
+
+            if (ActualPlayer := TimerMap[Agent]):
+                var TempAllPlayersMap:[agent]Timer = map{}
+                for (Key -> Value : TimerMap, Key <> Agent):
+                    set TempAllPlayersMap = ConcatenateMaps(TempAllPlayersMap, map{Key => Value})
+
+                set TimerMap = TempAllPlayersMap
+
+            if (ActualPlayer := AgentMap[Agent]):
+                var TempAllPlayersMap:[agent]agent_data = map{}
+                for (Key -> Value : AgentMap, Key <> Agent):
+                    set TempAllPlayersMap = ConcatenateMaps(TempAllPlayersMap, map{Key => Value})
+
+                set AgentMap = TempAllPlayersMap 
+
+
+        StatBoardManager.UpdateStatTableCanvas(AgentMap)
+
+    UpdatePower(CP:CustomPlayer, Player:player, Death : logic):void=
+        if(not Death?):
+            if: 
+                CurrentPlayerStats := PlayerStatsManager.GetPlayerStats[Player]
+                CurrentPower := CurrentPlayerStats.PowerStat.CurrentValue
+                var Power : int = CP.PowerUp
+            then:
+                PlayerStatsManager.RecordPlayerStat(Player, DataType.PowerStat, ?Value := Power)
+        else: 
+            Print("Set Player power = -1")
+            PlayerStatsManager.RecordPlayerStat(Player, DataType.PowerStat, ?Value := -1)
+
+    UpdateSteal(Player : player, StealCount : int):void=
+        if: 
+            CurrentPlayerStats := PlayerStatsManager.GetPlayerStats[Player]
+            CurrentSteal := CurrentPlayerStats.StealStat.CurrentValue
+        then:
+            PlayerStatsManager.RecordPlayerStat(Player, DataType.Steal, ?Value := StealCount)
+
+    AgentDataToPersistentToTmp(PersistableAgentData : persitable_agent_data)<transacts>: agent_data = 
+        return agent_data
+        {
+            UnlockablePowers := PersistableAgentData.UnlockablePowers,
+            UnlockableSecrets := PersistableAgentData.UnlockableSecrets,
+            Currency := PersistableAgentData.Currency,
+            Steals := PersistableAgentData.Steals
+        }
+
+    AgentDataTmpToPersistent(Agent_Data : agent_data)<transacts>:persitable_agent_data=
+        return persitable_agent_data
+        {
+            UnlockablePowers := Agent_Data.UnlockablePowers,
+            UnlockableSecrets := Agent_Data.UnlockableSecrets,
+            Currency := Agent_Data.Currency,
+            Steals := Agent_Data.Steals
+        }
+
+    UpdateUIPersistent(Agent : agent):void=
+        if(AgentData := AgentMap[Agent], ScreenCanvas := AgentData.MaybeScreenCanvas?):
+            Print("Found Canvas")
+            WinsTextBlockIndex := 3
+            PlayersLeftBlockIndex := 4
+            CurrencyBlockIndex := 5
+            if(WinsTextBlock := text_block[ScreenCanvas.Slots[WinsTextBlockIndex].Widget]):
+                # WinsTextBlock.SetText(S2M("{AgentData.Kills}"))
+
+            if(PlayersLeftBlock := text_block[ScreenCanvas.Slots[PlayersLeftBlockIndex].Widget]):
+                PlayersLeftBlock.SetText(S2M("Players: {PlayersInBoxFight}"))
+
+            if(CurrencyBlock := text_block[ScreenCanvas.Slots[CurrencyBlockIndex].Widget]):
+                CurrencyBlock.SetText(S2M("{AgentData.Currency}"))
+        
