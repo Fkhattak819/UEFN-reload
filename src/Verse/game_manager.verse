@@ -368,3 +368,67 @@ game_manager := class(creative_device):
         MinigameManager.CarGame.StartMutatorEvents()
         spawn. StartSafeZone()
 
+    DisplayPowers(Agent : agent):void=
+        ValidateCatalogOnce()
+        RunPowerInvariants(Agent)
+        Print("Powers Lefts Normal Length : {AvailablePowerUps.Length}", ?Color := color{R := 1.0, G := 0.3, B := 0.8})
+        Print("Powers Lefts Exotic Length : {AvailableExoticPowers.Length}", ?Color := color{R := 1.0, G := 0.0, B := 0.5})
+        Print("Powers Lefts Mythic Length : {AvailableMythicPowers.Length}", ?Color := color{R := 1.0, G := 1.0, B := 0.0})
+
+    DisplayUsedPowers(Agent : agent):void=
+        Print(ArrayToString(UsedPowers))
+        Print(ArrayToString(UsedExoticPowers))
+        Print(ArrayToString(UsedMythicPowers))
+
+    ValidateCatalogOnce():void=
+        # Powers should be registered exactly once.
+        var Seen:[int]logic = map{}
+        for (Id -> Power : PowerCatalog):
+            if (Seen[Id]):
+                Print("Duplicate in catalog: {Id}", ?Color := color{R:=1.0,G:=0.2,B:=0.2})
+            else:
+                if (set Seen[Id] = true) {}
+
+    ArrayToString(Ints:[]int):string =
+        var Result:string = ""
+        for (Index -> Value : Ints):
+            if (Index > 0):
+                set Result = "{Result}, "
+            set Result = "{Result}{Value}"
+        return "[{Result}]"
+
+    # ResetUI(Player:player,AgentData : agent_data):void=
+    #     if(PlayerUI := GetPlayerUI[Player], Canvas := AgentData.MaybeScreenCanvas?):
+    #         PlayerUI.RemoveWidget(Canvas)
+    #         NewCanvas := CreateScreenCanvas()
+    #         PlayerUI.AddWidget(NewCanvas)
+    #         set AgentData.MaybeScreenCanvas = option. NewCanvas
+
+    GenerateStorm():void=
+        SafeZone1.GenerateStorm()
+        SafeZone2.GenerateStorm()
+
+    DestroyStorm():void=
+        SafeZone1.DestroyStorm()
+        SafeZone2.DestroyStorm()
+            
+    StartSafeZone()<suspends>:void=
+        loop:
+            Sleep(1100.0)
+            DestroyStorm()
+            Sleep(0.1)
+            GenerateStorm()
+
+    ResetBuildsLoop()<suspends>:void=
+        loop:
+            Sleep(70.0)
+            ResetBuildsExplosiveDeviceTrigger.Trigger()
+            Sleep(0.1)
+            ResetBuildsExplosiveDevice.Reset()
+            ResetBuildsExplosiveDevice2.Reset()
+            ResetBuildsExplosiveDevice3.Reset()
+            ResetBuildsExplosiveDevice4.Reset()
+
+    EnteredAuraMutator(Agent : agent):void=
+        PowerManager.AuraPower.AuraSFX.Play(Agent)
+
