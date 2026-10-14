@@ -579,3 +579,49 @@ game_manager := class(creative_device):
     #     else if. UsedMythicPowers.Find[PowerUp] then. return PowerType.Mythic
     #     else. return PowerType.Normal
 
+    OnExoticTimerSuccess(MaybeAgent : ?agent):void=
+        RandomPowerUp := GetRandomPowerUp(PowerType.Exotic)
+        RandomIndex := RandomPowerUp - 1
+        if:
+            RandomPowerUp > 0
+            RandomIndex < CollectibleCoinManager.Collectibles.Length
+            RandomCollectible := CollectibleCoinManager.Collectibles[RandomIndex] # PowerUps are 1 indexed, arrays are 0 indexed
+            not UsedExoticPowers.Find[RandomPowerUp]
+        then:
+            Print("Found RandomPowerUp Exotic: {RandomPowerUp}")
+            set UsedExoticPowers += array{RandomPowerUp}
+            CollectibleCoinManager.TeleportAndDropFromSky(RandomCollectible)
+        else:
+            Print("Could not find Exotic power", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+
+
+    OnMythicTimerSuccess(MaybeAgent : ?agent):void=
+        RandomPowerUp := GetRandomPowerUp(PowerType.Mythic)
+        RandomIndex := RandomPowerUp - 1
+        if:
+            RandomPowerUp > 0
+            RandomIndex < CollectibleCoinManager.Collectibles.Length
+            RandomCollectible := CollectibleCoinManager.Collectibles[RandomIndex] # PowerUps are 1 indexed, arrays are 0 indexed
+            not UsedMythicPowers.Find[RandomPowerUp]
+        then:
+            Print("Found RandomPowerUp Mythic: {RandomPowerUp}")
+            set UsedMythicPowers += array{RandomPowerUp}
+            CollectibleCoinManager.TeleportAndDropFromSky(RandomCollectible)
+        else:
+            Print("Could not find Mythic power", ?Color := color{R := 1.0, G := 0.0, B := 0.0})
+
+    GrantInventory(Agent : agent, IsRemotePower : logic, IsSpecialGunPower : logic):void=
+        ShotgunGranter.CycleToRandomItem(Agent)
+        ARGranter.CycleToRandomItem(Agent)
+        if (IsRemotePower?):
+            RemoteGranter.GrantItem(Agent)
+        else if (IsSpecialGunPower?):
+        else:
+            SMGGranter.CycleToRandomItem(Agent)
+        UtilsGranter.CycleToRandomItem(Agent)
+        HealsGranter.CycleToRandomItem(Agent)
+
+    ResetAllVFXFor(Agent : agent):void=
+        ResetAllVFX.Pickup(Agent)
+        ResetAllVFX2.Pickup(Agent)
+
