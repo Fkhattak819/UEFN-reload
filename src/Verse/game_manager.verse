@@ -252,3 +252,59 @@ game_manager := class(creative_device):
     ORCA_GUN_INDEX : int = 6
     BIKE_GUN_INDEX : int = 7
 
+    ReassignPower(Agent : agent, NewPower : int):void=
+        if(CP := PlayersMap[Agent], CTimer := TimerMap[Agent]):
+            RemovePower(CP)
+            ReturnCurrentPowerToPools(CP)
+            AssignPowerup(Agent, NewPower)
+
+    OnCoinCollected(Agent : agent):void=
+        VeryLargeAccolade.Award(Agent)
+
+    OnBegin<override>()<suspends>:void=
+        InitPowerCatalog()
+        RebuildPoolsFromCatalog()
+
+        set PowerManager.TPBehindPower.MaybePlayspace = option{GetPlayspace()}
+        set PowerManager.FloodPower.MaybePlayspace = option{GetPlayspace()}
+
+        for(Collectable : XPCollectable):
+            Collectable.CollectedEvent.Subscribe(AwardXpCollectable)
+
+        # AwardCoins := Self.FindCreativeObjectsWithTag(CoinTag)
+        # for(Coin : AwardCoins, CoinItem := collectible_object_device[Coin]):
+        #     CoinItem.CollectedEvent.Subscribe(OnCoinCollected)
+
+        DebugAvaliablePowersButton.InteractedWithEvent.Subscribe(DisplayPowers)
+        DebugUsedPowerButton.InteractedWithEvent.Subscribe(DisplayUsedPowers)
+
+        # IdleFlexCinematic.Play()
+        PowerManager.AuraPower.AuraMutatorZone.AgentEntersEvent.Subscribe(EnteredAuraMutator)
+        MinigameManager.CarGame.StopMutatorEvents()
+        # TeamManager.ResetTeams(PlayersMap)
+
+        for (PlayerSpawner : PlayerSpawners):
+            PlayerSpawner.SpawnedEvent.Subscribe(OnPlayerSpawned)
+
+        for (Collectible : CollectibleCoinManager.Collectibles):
+            Collectible.CollectibleDevice.CollectedEvent.SubscribeAgent(OnCollectedPowerEvent, Collectible)
+            Collectible.DespawnedEvent.Subscribe(OnCollectibleDespawned)
+
+        for (Index -> Pinpad : PinpadTriggers):
+            Pinpad.Button.InteractedWithEvent.SubscribeAgent(OnPinpadButtonInteracted, Index)
+
+        MinigameManager.SharkGame.UnlockWeaponTrigger.TriggeredEvent.Subscribe(UnlockSharkWeapon)
+        MinigameManager.CarGame.UnlockButton.InteractedWithEvent.Subscribe(UnlockBikeWeapon)
+        MinigameManager.OrcaGame.UnlockButton.InteractedWithEvent.Subscribe(UnlockOrcaWeapon)
+
+        # Init players who join mid way
+        GetPlayspace().PlayerRemovedEvent().Subscribe(OnPlayerRemoved)
+        GoldRemote.PrimarySignalEvent.Subscribe(OnPrimaryClick)
+        StartGameTrigger.TriggeredEvent.Subscribe(StartGame)
+        CollectibleCoinManager.ExoticTimer.SuccessEvent.Subscribe(OnExoticTimerSuccess)
+        CollectibleCoinManager.MythicTimer.SuccessEvent.Subscribe(OnMythicTimerSuccess)
+        Sleep(1.0)
+        StartGameTrigger.Trigger()
+        # TeamManager.CheckIfTeamsAreEqual()
+        spawn. ResetBuildsLoop()
+
