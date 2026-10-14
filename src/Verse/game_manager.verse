@@ -708,3 +708,340 @@ game_manager := class(creative_device):
 
     # Power Management
     # REVIEW POWERS FOR NEW FUNCTIONALITY AND GAME TYPE
+    AssignPowerup(Agent : agent, PowerUp : int):void=
+        #This is where you alter the player ex. class or apply strength
+        if (CP : CustomPlayer = PlayersMap[Agent], Player := player[Agent], PlayerUI := GetPlayerUI[Player], CTimer := TimerMap[Agent], FortCharacter := Agent.GetFortCharacter[], AgentData := AgentMap[Agent]):
+            #Clear Inventory First
+            ResetAllVFXFor(Agent)
+            DefaultClass.ChangeClass(Agent)
+            ClearInventory.Remove(Agent)
+            FortCharacter.Show()
+            CP.SetPowerUp(PowerUp)
+            UpdatePower(CP, Player, false)
+            # TeamManager.CheckForTeamChange(CP)
+            # MatsGranter.GrantItem(Agent)
+            # AmmoGranter.GrantItem(Agent)
+            Print("Agent has powerup {PowerUp}")
+
+            # if(PowerUp = JUMP_EXPLODE):
+            #     PowerManager.JumpExplodePower.PowerUI.Show(Agent)
+            #     PowerManager.JumpExplodePower.Init(Agent)
+            
+            if(PowerUp = PULL):
+                PowerManager.PullPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.PullPower.PullGranter.GrantItem(Agent)
+                CTimer.HideTimer()
+            
+            else if(PowerUp = ONESHOT):
+                PowerManager.OneShotPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.OneShotPower.OneShotItemGranter.GrantItem(Agent)
+            
+            else if(PowerUp = TELEPORT_BEHIND):
+                PowerManager.TPBehindPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+                spawn. PowerManager.TPBehindPower.PlayerInViewAsync(CP, PlayersMap, CTimer)
+            
+            else if(PowerUp = FREEZE):
+                PowerManager.FreezePower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.FreezePower.IceGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = FLOOD):
+                PowerManager.FloodPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+                spawn. PowerManager.FloodPower.PlayerInViewAsync(CP, PlayersMap, CTimer)
+            
+            else if(PowerUp = AURA):
+                PowerManager.AuraPower.PowerUI.Show(Agent)
+                PowerManager.AuraPower.Init(Agent)    
+                GrantInventory(Agent, false, false)     
+                CTimer.HideTimer()
+            
+            else if(PowerUp = INVIS):
+                PowerManager.InvisPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.InvisPower.INVISPOWERGranter.GrantItem(Agent)
+                spawn. PowerManager.InvisPower.Init(Agent, CTimer, DefaultClass)
+            
+            else if(PowerUp = TIME_TRAVEL):
+                PowerManager.TimeTravelPower.PowerUI.Show(Agent)
+                PowerManager.TimeTravelPower.Init(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = REWIND):
+                PowerManager.RewindPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = BULL):
+                PowerManager.BullPower.PowerUI.Show(Agent)
+                spawn. PowerManager.BullPower.Init(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.HideTimer()
+            
+            else if(PowerUp = BACKSTAB):
+                PowerManager.BackstabPower.PowerUI.Show(Agent)
+                PowerManager.BackstabPower.Init(Agent, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = LIFESTEAL):
+                PowerManager.LifeStealPower.PowerUI.Show(Agent)
+                spawn. PowerManager.LifeStealPower.Init(CP, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = ASTRONAUT):
+                PowerManager.AstronautPower.PowerUI.Show(Agent)
+                PowerManager.AstronautPower.Init(Agent, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            # else if(PowerUp = BOUNTY_HUNTER):
+            #     PowerManager.BountyHunterPower.PowerUI.Show(Agent)
+            #     spawn. PowerManager.BountyHunterPower.Init(CP, PlayersMap, CTimer)
+            #     GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = KNOCKBACK):
+                PowerManager.KnockbackPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.HideTimer()
+            
+            else if(PowerUp = CIRCLE_BOMBS):
+                PowerManager.CircleBombsPower.PowerUI.Show(Agent)
+                PowerManager.CircleBombsPower.Init(CTimer)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = VOLLEY_BOMBS):
+                PowerManager.VolleyBombsPower.PowerUI.Show(Agent)
+                PowerManager.VolleyBombsPower.WearableVFX.Pickup(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = XRAY):
+                PowerManager.XrayPower.PowerUI.Show(Agent)
+                # PowerManager.XrayPower.WearableVFX.Pickup(Agent)
+                spawn. PowerManager.XrayPower.Init(CP, PlayersMap, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = AGILITY):
+                PowerManager.AgilityPower.PowerUI.Show(Agent)
+                PowerManager.AgilityPower.Init(Agent, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = DANCE):
+                PowerManager.DancePower.PowerUI.Show(Agent)
+                PowerManager.DancePower.Init(Agent, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = SUPERCHARGED):
+                PowerManager.SuperchargedPower.PowerUI.Show(Agent)
+                PowerManager.SuperchargedPower.Init(CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = SELFREVIVE):
+                PowerManager.SelfRevivePower.PowerUI.Show(Agent)
+                spawn. PowerManager.SelfRevivePower.Init(Agent, CTimer)
+                GrantInventory(Agent, false, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = IMMUNE):
+                PowerManager.ImmunePower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = FASTERDAMAGE):
+                PowerManager.MoreSpeedFromDamagePower.PowerUI.Show(Agent)
+                spawn. PowerManager.MoreSpeedFromDamagePower.Init(CTimer)
+                GrantInventory(Agent, false, false)
+                CTimer.ShowTimer()
+            
+            # else if(PowerUp = ONESHOTPICKAXE):
+            #     PowerManager.OneShotPickaxePower.PowerUI.Show(Agent)
+            #     CTimer.HideTimer()
+
+            else if(PowerUp = BUSH):
+                PowerManager.BushPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = AIMBOT):
+                PowerManager.AimbotPower.PowerUI.Show(Agent)
+                PowerManager.AimbotPower.Init(Agent, CTimer)
+                GrantInventory(Agent, false, false)
+            
+            else if(PowerUp = FINISHER2):
+                PowerManager.LotsOfHealthPower.PowerUI.Show(Agent)
+                PowerManager.LotsOfHealthPower.Init(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.ShowTimer()
+            
+            else if(PowerUp = FINISHER3):
+                PowerManager.Teleport3PeoplePower.PowerUI.Show(Agent)
+                PowerManager.Teleport3PeoplePower.Init(Agent, CTimer)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            # else if(PowerUp = MOBILITY):
+            #     PowerManager.MobilityPower.PowerUI.Show(Agent)
+            #     PowerManager.MobilityPower.Init(Agent)
+            
+            else if(PowerUp = ANT):
+                PowerManager.AntPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = ELECTRIC):
+                PowerManager.ElectricPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.HideTimer()
+
+            # else if(PowerUp = PHOENIX):
+            #     PowerManager.PhoenixPower.PowerUI.Show(Agent)
+            #     PowerManager.PhoenixPower.Init(Agent)
+            #     CTimer.HideTimer()
+
+            else if(PowerUp = SPIDEY):
+                PowerManager.SpideyPower.PowerUI.Show(Agent)
+                PowerManager.SpideyPower.Init(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.HideTimer()
+
+            else if(PowerUp = CHAR):
+                PowerManager.TurnIntoCharPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, false)
+                PowerManager.TurnIntoCharPower.ActivateAbility(Agent)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = CHAR2):
+                PowerManager.TurnIntoCharPower2.PowerUI.Show(Agent)
+                PowerManager.TurnIntoCharPower2.ActivateAbility(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = CHAIRPULL):
+                PowerManager.ChairPullPower.PowerUI.Show(Agent)
+                spawn. PowerManager.ChairPullPower.PlayerInViewAsync(CP, PlayersMap, CTimer)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = FLY):
+                PowerManager.FlyPower.PowerUI.Show(Agent)
+                spawn. PowerManager.FlyPower.Init(Agent)
+                GrantInventory(Agent, false, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = MISSILE):
+                PowerManager.MissilePower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = ENGLISH_OR_SPANISH):
+                PowerManager.EnglishOrSpanishPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = CREEPER):
+                PowerManager.CreeperPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = TRANSFORM):
+                PowerManager.TransformPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.TransformPower.ItemGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = JUMPSCARE):
+                PowerManager.JumpscarePower.PowerUI.Show(Agent)
+                spawn. PowerManager.JumpscarePower.PlayerInViewAsync(CP, PlayersMap, CTimer)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = BLIND):
+                PowerManager.BlindPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.BlindPower.WeaponGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = PHONE_CALL_MUL):
+                PowerManager.PhoneCallMulPower.PowerUI.Show(Agent)
+                spawn. PowerManager.PhoneCallMulPower.PlayerInViewAsync(CP, PlayersMap, CTimer)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = PROPFOLLOW):
+                PowerManager.PropFollowPower.PowerUI.Show(Agent)
+                spawn. PowerManager.PropFollowPower.PlayerInViewAsync(CP, PlayersMap, CTimer)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+            # else if(PowerUp = SHOOT_PROP):
+            #     PowerManager.ShootPropPower.PowerUI.Show(Agent)
+            #     GrantInventory(Agent, true, false)
+            #     CTimer.ShowTimer()
+
+            else if(PowerUp = RAT_DANCE):
+                PowerManager.ForceDancePower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.ForceDancePower.ItemGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = SALSA_ANIMATION):
+                PowerManager.SalsaAnimationPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.SalsaAnimationPower.WeaponGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = WINTERARC_ANIMATION):
+                PowerManager.WinterArcAnimationPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.WinterArcAnimationPower.WeaponGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            # else if(PowerUp = SLAP_COMP_ANIMATION):
+            #     PowerManager.SlapCompAnimationPower.PowerUI.Show(Agent)
+            #     GrantInventory(Agent, false, true)
+            #     PowerManager.SlapCompAnimationPower.WeaponGranter.GrantItem(Agent)
+            #     CTimer.ShowTimer()
+
+            else if(PowerUp = MUSTARD_ANIMATION):
+                PowerManager.MustardAnimationPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.MustardAnimationPower.WeaponGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            else if(PowerUp = SIXSEVEN_ANIMATION):
+                PowerManager.SixSevenAnimationPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, false, true)
+                PowerManager.SixSevenAnimationPower.WeaponGranter.GrantItem(Agent)
+                CTimer.ShowTimer()
+
+            # else if(PowerUp = SUI_ANIMATION):
+            #     PowerManager.SuiAnimationPower.PowerUI.Show(Agent)
+            #     GrantInventory(Agent, false, true)
+            #     PowerManager.SuiAnimationPower.WeaponGranter.GrantItem(Agent)
+            #     CTimer.ShowTimer()
+
+            # else if(PowerUp = KID_ON_BOAT_ANIMATION):
+            #     PowerManager.KidOnBoatAnimationPower.PowerUI.Show(Agent)
+            #     GrantInventory(Agent, false, true)
+            #     PowerManager.KidOnBoatAnimationPower.WeaponGranter.GrantItem(Agent)
+            #     CTimer.ShowTimer()
+
+            # else if(PowerUp = ONE_POUND_FISH_ANIMATION):
+            #     PowerManager.OnePoundFishAnimationPower.PowerUI.Show(Agent)
+            #     GrantInventory(Agent, false, true)
+            #     PowerManager.OnePoundFishAnimationPower.WeaponGranter.GrantItem(Agent)
+            #     CTimer.ShowTimer()
+
+            else if(PowerUp = SNAP):
+                PowerManager.SnapPower.PowerUI.Show(Agent)
+                GrantInventory(Agent, true, false)
+                CTimer.ShowTimer()
+
+
